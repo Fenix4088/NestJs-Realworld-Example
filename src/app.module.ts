@@ -8,6 +8,7 @@ import { ProfileModule } from './profile/profile.module';
 import { TagModule } from './tag/tag.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import configuration from './config/configuration';
     ArticleModule,
     UserModule,
     ProfileModule,
-    TagModule
+    TagModule,
+    ChatModule
   ],
   controllers: [
     AppController

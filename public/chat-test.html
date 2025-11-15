@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        #messages {
+            border: 1px solid #ddd;
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+            border-radius: 5px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+        .message.system {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .message.own {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+        .message-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .message-text {
+            color: #333;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .typing {
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💬 WebSocket Chat Test</h1>
+        
+        <div id="status" class="status disconnected">
+            🔴 Отключено
+        </div>
+
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="username" 
+                placeholder="Ваше имя" 
+                value="User_<?= rand(1000, 9999) ?>"
+            />
+        </div>
+
+        <div id="typing" class="typing"></div>
+
+        <div id="messages"></div>
+
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Введите сообщение..." 
+                disabled
+            />
+            <button id="sendBtn" disabled>Отправить</button>
+        </div>
+
+        <div style="margin-top: 15px; font-size: 12px; color: #666;">
+            <strong>Подключение:</strong> ws://localhost:3000<br>
+            <strong>Client ID:</strong> <span id="clientId">-</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // Элементы DOM
+        const statusEl = document.getElementById('status');
+        const messagesEl = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const usernameInput = document.getElementById('username');
+        const clientIdEl = document.getElementById('clientId');
+        const typingEl = document.getElementById('typing');
+
+        let socket;
+        let typingTimeout;
+
+        // Подключение к WebSocket серверу
+        function connect() {
+            socket = io('http://localhost:3000', {
+                transports: ['websocket'],
+                auth: {
+                    token: `${localStorage.getItem('jwt')}`
+                }
+            });
+
+            // Событие: Подключение установлено
+            socket.on('connect', () => {
+                console.log('✅ Подключено к серверу');
+                statusEl.className = 'status connected';
+                statusEl.textContent = '🟢 Подключено';
+                clientIdEl.textContent = socket.id;
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+            });
+
+            // Событие: Отключение
+            socket.on('disconnect', () => {
+                console.log('❌ Отключено от сервера');
+                statusEl.className = 'status disconnected';
+                statusEl.textContent = '🔴 Отключено';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            });
+
+            // Событие: Приветствие от сервера
+            socket.on('welcome', (data) => {
+                addMessage('system', 'Система', data.message);
+            });
+
+            // Событие: Новый пользователь присоединился
+            socket.on('user-joined', (data) => {
+                addMessage('system', 'Система', `Пользователь ${data.clientId} присоединился`);
+            });
+
+            // Событие: Пользователь вышел
+            socket.on('user-left', (data) => {
+                addMessage('system', 'Система', `Пользователь ${data.clientId} вышел`);
+            });
+
+            // Событие: Получено сообщение
+            socket.on('message', (data) => {
+                const isOwn = data.clientId === socket.id;
+                addMessage(
+                    isOwn ? 'own' : 'other',
+                    data.username,
+                    data.text,
+                    new Date(data.timestamp)
+                );
+            });
+
+            // Событие: Кто-то печатает
+            socket.on('user-typing', (data) => {
+                typingEl.textContent = `${data.username} печатает...`;
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    typingEl.textContent = '';
+                }, 3000);
+            });
+        }
+
+        // Отправить сообщение
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            const username = usernameInput.value.trim() || 'Anonymous';
+
+            if (text && socket && socket.connected) {
+                socket.emit('message', { text, username }, (response) => {
+                    console.log('Ответ от сервера:', response);
+                });
+                messageInput.value = '';
+            }
+        }
+
+        // Добавить сообщение в чат
+        function addMessage(type, username, text, timestamp = new Date()) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const time = timestamp.toLocaleTimeString('ru-RU');
+            
+            messageDiv.innerHTML = `
+                <div class="message-meta">
+                    <strong>${username}</strong> · ${time}
+                </div>
+                <div class="message-text">${text}</div>
+            `;
+            
+            messagesEl.appendChild(messageDiv);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // Отправка "typing" события
+        messageInput.addEventListener('input', () => {
+            if (socket && socket.connected) {
+                socket.emit('typing', {
+                    username: usernameInput.value.trim() || 'Anonymous'
+                });
+            }
+        });
+
+        // Отправка по кнопке
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Отправка по Enter
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Подключиться при загрузке страницы
+        connect();
+    </script>
+</body>
+</html>
