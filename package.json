@@ -11,7 +11,12 @@
     "start:prod": "node dist/main.js",
     "test": "jest --config=jest.json",
     "test:watch": "jest --watch --config=jest.json",
-    "test:coverage": "jest --config=jest.json --coverage --coverageDirectory=coverage"
+    "test:coverage": "jest --config=jest.json --coverage --coverageDirectory=coverage",
+    "typeorm": "ts-node ./node_modules/typeorm/cli",
+    "migration:generate": "npm run typeorm -- -d ./typeorm.config.ts migration:generate ./src/migrations/InitialSchema",
+    "migration:run": "npm run typeorm -- -d ./typeorm.config.ts migration:run",
+    "migration:revert": "npm run typeorm -- -d ./typeorm.config.ts migration:revert",
+    "migration:create": "npm run typeorm -- migration:create ./src/migrations/ManualMigration"
   },
   "repository": {
     "type": "git",
@@ -59,6 +64,6 @@
     "nodemon": "^3.1.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.2"
   }
 }

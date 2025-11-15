@@ -4,20 +4,24 @@ import { Repository, DeleteResult } from 'typeorm';
 import { UserEntity } from './user.entity';
 import {CreateUserDto, LoginUserDto, UpdateUserDto} from './dto';
 const jwt = require('jsonwebtoken');
-import { SECRET } from '../config';
 import { UserRO } from './user.interface';
 import { validate } from 'class-validator';
 import * as argon2 from 'argon2';
 import { DiscoveryService } from '@nestjs/core';
 import { UserController } from './user.controller';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
+  private readonly secret: string;
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly discoveryService: DiscoveryService
-  ) {}
+    private readonly discoveryService: DiscoveryService,
+    private readonly configService: ConfigService
+  ) {
+    this.secret = this.configService.get('jwt.secret');
+  }
 
   async findAll(): Promise<UserEntity[]> {
     return await this.userRepository.find();
@@ -111,7 +115,7 @@ export class UserService {
       username: user.username,
       email: user.email,
       exp: exp.getTime() / 1000,
-    }, SECRET);
+    }, this.secret);
   };
 
   private buildUserRO(user: UserEntity) {
