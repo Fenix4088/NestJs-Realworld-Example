@@ -8,12 +8,15 @@ import { SECRET } from '../config';
 import { UserRO } from './user.interface';
 import { validate } from 'class-validator';
 import * as argon2 from 'argon2';
+import { DiscoveryService } from '@nestjs/core';
+import { UserController } from './user.controller';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly discoveryService: DiscoveryService
   ) {}
 
   async findAll(): Promise<UserEntity[]> {

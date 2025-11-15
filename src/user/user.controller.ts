@@ -1,4 +1,4 @@
-import { Get, Post, Body, Put, Delete, Param, Controller, UsePipes, HttpException } from '@nestjs/common';
+import { Get, Post, Body, Put, Delete, Param, Controller, UsePipes, HttpException, Injectable, ExecutionContext, CanActivate, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { UserService } from './user.service';
 import { UserRO } from './user.interface';
@@ -12,6 +12,18 @@ import {
 import { CreateUserBody } from './dto/create-user.dto';
 import { LoginUserBody } from './dto/login-user.dto';
 import { UpdateUserBody } from './dto/update-user.dto';
+import { Reflector } from '@nestjs/core';
+import { Observable } from 'rxjs';
+
+@Injectable()
+export class TestGuard implements CanActivate {
+  constructor(private reflector: Reflector) {
+  }
+
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    return true;
+  }
+}
 
 @ApiBearerAuth()
 @ApiTags('user')
@@ -21,6 +33,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('user')
+  @UseGuards(TestGuard)
   async findMe(@User('email') email: string): Promise<UserRO> {
     return await this.userService.findByEmail(email);
   }

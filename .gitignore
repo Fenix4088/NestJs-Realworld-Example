@@ -10,7 +10,9 @@ node_modules
 
 # Optional npm cache directory
 .npm
-
+.env
+.env.local
+.env.*.local
 #IDEs
 .idea
 
