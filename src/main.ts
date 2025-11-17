@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { ApplicationModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const appOptions = {cors: true};
+  const logger = new Logger('Bootstrap');
+  const appOptions = { cors: true };
   const app = await NestFactory.create(ApplicationModule, appOptions);
   app.setGlobalPrefix('api');
 
@@ -21,7 +23,7 @@ async function bootstrap() {
   SwaggerModule.setup('/docs', app, document);
 
   await app.listen(port);
-  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/docs`);
+  logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  logger.log(`📚 Swagger docs: http://localhost:${port}/docs`);
 }
 bootstrap();

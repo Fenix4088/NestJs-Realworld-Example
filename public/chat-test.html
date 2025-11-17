@@ -144,9 +144,19 @@
             <button id="sendBtn" disabled>Отправить</button>
         </div>
 
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="roomInput" 
+                placeholder="ID комнаты (например: room-123)" 
+            />
+            <button id="joinRoomBtn">Войти в комнату</button>
+        </div>
+
         <div style="margin-top: 15px; font-size: 12px; color: #666;">
             <strong>Подключение:</strong> ws://localhost:3000<br>
             <strong>Client ID:</strong> <span id="clientId">-</span>
+            <strong>Количество пользователей:</strong> <span id="userCount">-</span>
         </div>
     </div>
 
@@ -218,6 +228,11 @@
                 );
             });
 
+            // Событие: Количество пользователей
+            socket.on('user-count', (data) => {
+                document.getElementById('userCount').textContent = data.count;
+            });
+
             // Событие: Кто-то печатает
             socket.on('user-typing', (data) => {
                 typingEl.textContent = `${data.username} печатает...`;
@@ -226,7 +241,44 @@
                     typingEl.textContent = '';
                 }, 3000);
             });
+
+
+            const roomInput = document.getElementById('roomInput');
+const joinRoomBtn = document.getElementById('joinRoomBtn');
+let currentRoom = null;
+
+// Войти в комнату
+joinRoomBtn.addEventListener('click', () => {
+    const roomId = roomInput.value.trim();
+    if (roomId && socket && socket.connected) {
+        socket.emit('join-room', { roomId }, (response) => {
+            if (response.success) {
+                currentRoom = roomId;
+                addMessage('system', 'Система', `Вы в комнате: ${roomId}`);
+                roomInput.disabled = true;
+                joinRoomBtn.disabled = true;
+            }
+        });
+    }
+});
+
+// Получить сообщение в комнате
+socket.on('room-message', (data) => {
+    if (data.type === 'system') {
+        addMessage('system', 'Комната', data.text);
+    } else {
+        const isOwn = data.clientId === socket.id;
+        addMessage(
+            isOwn ? 'own' : 'other',
+            data.username,
+            `[Комната ${data.roomId}] ${data.text}`,
+            new Date(data.timestamp)
+        );
+    }
+});
         }
+
+        
 
         // Отправить сообщение
         function sendMessage() {

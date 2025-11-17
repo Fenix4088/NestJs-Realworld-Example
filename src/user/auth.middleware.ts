@@ -1,30 +1,31 @@
-import { HttpException, NestMiddleware, HttpStatus, Injectable } from '@nestjs/common';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Request, Response, NextFunction } from 'express';
-import * as jwt from 'jsonwebtoken';
-import { UserService } from './user.service';
+import { HttpException, HttpStatus, Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NextFunction, Request, Response } from 'express';
+import { AuthService } from 'src/auth/auth.service';
+import { UserService } from './user.service';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly userService: UserService, private readonly configService: ConfigService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    const authHeaders = req.headers.authorization;
-    if (authHeaders && (authHeaders as string).split(' ')[1]) {
-      const token = (authHeaders as string).split(' ')[1];
-      const secret = this.configService.get('jwt.secret');
-      const decoded: any = jwt.verify(token, secret);
-      const user = await this.userService.findById(decoded.id);
+    try {
+      const authHeaders = req.headers.authorization;
 
-      if (!user) {
-        throw new HttpException('User not found.', HttpStatus.UNAUTHORIZED);
+      if (!authHeaders) {
+        throw new HttpException('Not authorized.', HttpStatus.UNAUTHORIZED);
       }
 
-      req.user = user.user;
-      next();
+      const token = this.authService.extractBearerToken(authHeaders);
+      const user = await this.authService.getUserFromToken(token);
 
-    } else {
+      req.user = user;
+      next();
+    } catch {
       throw new HttpException('Not authorized.', HttpStatus.UNAUTHORIZED);
     }
   }

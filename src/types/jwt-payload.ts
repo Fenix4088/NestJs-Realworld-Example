@@ -1,7 +1,7 @@
-import { JwtPayload } from "jsonwebtoken";
+import { JwtPayload } from 'jsonwebtoken';
 
 export interface AppJwtPayload extends JwtPayload {
-      id: number,
-      username: string,
-      email: string,
-};
+  id: number;
+  username: string;
+  email: string;
+}

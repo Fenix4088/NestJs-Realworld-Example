@@ -40,12 +40,10 @@ import { ChatModule } from './chat/chat.module';
     UserModule,
     ProfileModule,
     TagModule,
-    ChatModule
+    ChatModule,
   ],
-  controllers: [
-    AppController
-  ],
-  providers: []
+  controllers: [AppController],
+  providers: [],
 })
 export class ApplicationModule {
   constructor(private readonly dataSource: DataSource) {}

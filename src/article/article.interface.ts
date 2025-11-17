@@ -4,14 +4,14 @@ interface Comment {
   body: string;
 }
 
-interface ArticleData {
+export interface ArticleData {
   slug: string;
   title: string;
   description: string;
   body?: string;
   tagList?: string[];
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt?: Date;
+  updatedAt?: Date;
   favorited?: boolean;
   favoritesCount?: number;
   author?: UserData;
@@ -29,4 +29,3 @@ export interface ArticlesRO {
   articles: ArticleEntity[];
   articlesCount: number;
 }
-

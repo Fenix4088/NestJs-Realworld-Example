@@ -2,7 +2,6 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 
 export class BaseController {
-
   constructor(private readonly configService: ConfigService) {}
 
   protected getUserIdFromToken(authorization) {

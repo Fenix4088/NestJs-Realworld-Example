@@ -1,14 +1,25 @@
-import { Get, Post, Body, Put, Delete, Param, Controller, UsePipes, HttpException, Injectable, ExecutionContext, CanActivate, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
+import {
+  Get,
+  Post,
+  Body,
+  Put,
+  Delete,
+  Param,
+  Controller,
+  UsePipes,
+  HttpException,
+  Injectable,
+  ExecutionContext,
+  CanActivate,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRO } from './user.interface';
 import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
 import { User } from './user.decorator';
 import { ValidationPipe } from '../shared/pipes/validation.pipe';
 
-import {
-  ApiBearerAuth, ApiTags, ApiBody
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiBody } from '@nestjs/swagger';
 import { CreateUserBody } from './dto/create-user.dto';
 import { LoginUserBody } from './dto/login-user.dto';
 import { UpdateUserBody } from './dto/update-user.dto';
@@ -17,10 +28,9 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class TestGuard implements CanActivate {
-  constructor(private reflector: Reflector) {
-  }
+  constructor(private reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(_context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     return true;
   }
 }
@@ -29,7 +39,6 @@ export class TestGuard implements CanActivate {
 @ApiTags('user')
 @Controller()
 export class UserController {
-
   constructor(private readonly userService: UserService) {}
 
   @Get('user')
@@ -62,12 +71,12 @@ export class UserController {
   async login(@Body('user') loginUserDto: LoginUserDto): Promise<UserRO> {
     const _user = await this.userService.findOne(loginUserDto);
 
-    const errors = {User: ' not found'};
-    if (!_user) throw new HttpException({errors}, 401);
+    const errors = { User: ' not found' };
+    if (!_user) throw new HttpException({ errors }, 401);
 
     const token = await this.userService.generateJWT(_user);
-    const {email, username, bio, image} = _user;
-    const user = {email, token, username, bio, image};
-    return {user}
+    const { email, username, bio, image, id } = _user;
+    const user = { email, token, username, bio, image, id };
+    return { user };
   }
 }

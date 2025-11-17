@@ -1,11 +1,10 @@
-import { createParamDecorator, ExecutionContext } from "@nestjs/common";
-import { Socket } from "socket.io";
-import { AppJwtPayload } from "src/types/jwt-payload";
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { Socket } from 'socket.io';
 
 export const WsUser = createParamDecorator((data: string | undefined, ctx: ExecutionContext) => {
-      const client = ctx.switchToWs().getClient<Socket>();
+  const client = ctx.switchToWs().getClient<Socket>();
 
-      const user = client.data.user;
+  const user = client.data.user;
 
-      return data ? user[data] : user;
+  return data ? user[data] : user;
 });

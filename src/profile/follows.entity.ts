@@ -1,8 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('follows')
 export class FollowsEntity {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -11,5 +10,4 @@ export class FollowsEntity {
 
   @Column()
   followingId: number;
-
 }

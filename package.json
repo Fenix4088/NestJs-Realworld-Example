@@ -16,7 +16,11 @@
     "migration:generate": "npm run typeorm -- -d ./typeorm.config.ts migration:generate ./src/migrations/InitialSchema",
     "migration:run": "npm run typeorm -- -d ./typeorm.config.ts migration:run",
     "migration:revert": "npm run typeorm -- -d ./typeorm.config.ts migration:revert",
-    "migration:create": "npm run typeorm -- migration:create ./src/migrations/ManualMigration"
+    "migration:create": "npm run typeorm -- migration:create ./src/migrations/ManualMigration",
+    "format": "prettier --write \"src/**/*.ts\" \"*.ts\" \"*.js\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"*.ts\" \"*.js\"",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -63,10 +67,17 @@
     "@types/passport-jwt": "^4.0.0",
     "@types/socket.io": "^3.0.2",
     "@types/supertest": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
+    "prettier": "^3.6.2",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }
